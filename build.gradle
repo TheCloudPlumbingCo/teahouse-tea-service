@@ -1,0 +1,65 @@
+ext.buildTime = new Date().toInstant()
+
+buildscript {
+    ext.springBootVersion = '4.1.+'
+    ext.springCloudVersion = '2025.1.+'
+    ext.springDataVersion = '2026.0.+'
+
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'com.gorylenko.gradle-git-properties:gradle-git-properties:4.+'
+        classpath 'org.cyclonedx:cyclonedx-gradle-plugin:3.+'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.+'
+    }
+}
+
+allprojects {
+    apply from: "$rootDir/gradle/common.gradle"
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+apply from: "$rootDir/gradle/spring-boot.gradle"
+
+configurations {
+    adoc
+}
+
+dependencies {
+    implementation "org.example.teahouse:water-api:$waterApiVersion"
+    implementation "org.example.teahouse:tealeaf-api:$tealeafApiVersion"
+    implementation project(':tea-api')
+
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'io.github.openfeign:feign-hc5'
+    implementation 'io.github.openfeign:feign-micrometer'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-zipkin'
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:latest.release'
+
+    implementation 'org.zalando:logbook-spring-boot-starter:latest.release'
+    implementation 'org.zalando:logbook-httpclient5:latest.release'
+
+    runtimeOnly 'com.github.loki4j:loki-logback-appender:2.+'
+
+    adoc 'io.micrometer:micrometer-docs-generator:1.+'
+}
+
+tasks.register('asciidoctor', JavaExec) {
+    mainClass = 'io.micrometer.docs.DocsGeneratorCommand'
+    classpath configurations.adoc
+    // input folder, inclusion pattern, output folder
+    args projectDir.path, '.*', project.layout.buildDirectory.dir('asciidoctor').get().asFile.path
+}

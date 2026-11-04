@@ -1,0 +1,2 @@
+rootProject.name = 'teahouse-tea-service'
+include 'tea-api'
